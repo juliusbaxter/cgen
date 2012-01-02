@@ -1,4 +1,4 @@
-/* OpenRISC opcode support.  -*- C -*-
+/* OpenRISC 1000 opcode support.  -*- C -*-
    Copyright 2000, 2001, 2003, 2005, 2011 Free Software Foundation, Inc.
 
    Contributed by Red Hat Inc;
@@ -41,7 +41,7 @@
 #undef  CGEN_DIS_HASH
 #define CGEN_DIS_HASH(buffer, value) (((unsigned char *) (buffer))[0] >> 2)
 
-extern long openrisc_sign_extend_16bit (long);
+extern long or1k_sign_extend_16bit (long);
 /* -- */
 
 /* -- opc.c */
@@ -54,7 +54,7 @@ static const char * MISSING_CLOSING_PARENTHESIS = N_("missing `)'");
 #define CGEN_VERBOSE_ASSEMBLER_ERRORS
 
 long
-openrisc_sign_extend_16bit (long value)
+or1k_sign_extend_16bit (long value)
 {
   return ((value & 0xffff) ^ 0x8000) - 0x8000;
 }
@@ -159,6 +159,6 @@ parse_lo16 (CGEN_CPU_DESC cd, const char ** strp, int opindex, long * valuep)
 /* -- */
 
 /* -- ibd.h */
-extern long openrisc_sign_extend_16bit (long);
+extern long or1k_sign_extend_16bit (long);
 
 /* -- */
