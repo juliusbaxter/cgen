@@ -54,11 +54,6 @@
     ((value pc) (sra WI (sub WI value pc) (const 2)))
     ((value pc) (add WI (sll WI value (const 2)) pc)))
 
-; absolute, 26-bit (2 shifted to right)
-(df f-abs26      "abs26"               (ABS-ADDR) 25 26 INT
-    ((value pc) (sra WI pc     (const 2)))
-    ((value pc) (sll WI value  (const 2))))
-
 (define-multi-ifield
   (name f-i16nc)
   (comment "16 bit signed")
@@ -198,12 +193,11 @@
 
 ; Instruction operands.
 
-(dnop spr      "special purpose register"   (SEM-ONLY)  h-spr  f-nil)
+(dnop spr     "special purpose register"   (SEM-ONLY)  h-spr  f-nil)
 (dnop cbit    "condition bit"              (SEM-ONLY)  h-cbit f-nil)
 (dnop simm-16 "16 bit signed immediate"    ()          h-sint f-simm16)
 (dnop uimm-16 "16 bit unsigned immediate"  ()          h-uint f-uimm16)
 (dnop disp-26 "pc-rel 26 bit"              ()          h-iaddr f-disp26)
-(dnop abs-26  "abs 26 bit"                 ()          h-iaddr f-abs26)
 (dnop uimm-5  "imm5"                       ()          h-uint f-uimm5)
 (dnop uimm-6  "imm6"                       ()          h-uint f-uimm6)
 
@@ -243,30 +237,30 @@
 
 ; Branch releated instructions 
 
-(dni l-j "jump (absolute iaddr)"
+(dni l-j "jump (pc-relative iaddr)"
      ; This function may not be in delay slot
      (NOT-IN-DELAY-SLOT) 
 
-     "l.j ${abs-26}"
-     (+ OPC_J abs-26)
+     "l.j ${disp-26}"
+     (+ OPC_J disp-26)
 
      ; We execute the delay slot before doin' the real branch
-     (delay 1 (set pc abs-26))
+     (delay 1 (set pc disp-26))
      ()
 )
 
-(dni l-jal "jump and link (absolute iaddr)"
+(dni l-jal "jump and link (pc-relative iaddr)"
      ; This function may not be in delay slot
      (NOT-IN-DELAY-SLOT)
 
-     "l.jal ${abs-26}"
-     (+ OPC_JAL abs-26)
+     "l.jal ${disp-26}"
+     (+ OPC_JAL disp-26)
 
      ; We execute the delay slot before doin' the real branch
      ; Set LR to (delay insn addr + 4)
      (sequence ()
                (set (reg h-gr 9) (add (reg h-delay-insn) 4))
-               (delay 1 (set pc abs-26)))
+               (delay 1 (set pc disp-26)))
      ()
 )
 
@@ -371,9 +365,17 @@
 
 ; Misc instructions
 
-(dni l-nop "nop"
+(dni l-nop "nop with no immediate"
      ()
      "l.nop"
+     (+ OPC_NOP (f-op-25-2 #x1) (f-resv-23-8 0) uimm-16)
+     (nop)
+     ()
+)
+
+(dni l-nop-imm "nop with immediate"
+     ()
+     "l.nop ${uimm-16}"
      (+ OPC_NOP (f-op-25-2 #x1) (f-resv-23-8 0) uimm-16)
      (nop)
      ()
