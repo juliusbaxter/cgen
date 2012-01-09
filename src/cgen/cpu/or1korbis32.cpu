@@ -328,7 +328,7 @@
      "l.trap ${uimm-16}"
      (+ OPC_SYSTRAPSYNCS OPC_SYSTRAPSYNCS_TRAP (f-resv-20-5 0) uimm-16)
      ; Do exception entry handling in C function, PC set based on SR state
-     (set pc (c-call WI "@cpu@_cpu_exception_entry" 14 pc ))
+     (set pc (c-call WI "@arch@_cpu_exception_entry" 14 pc ))
      ()
 )
 
@@ -340,7 +340,7 @@
      "l.sys ${uimm-16}"
      (+ OPC_SYSTRAPSYNCS OPC_SYSTRAPSYNCS_SYSCALL (f-resv-20-5 0) uimm-16)
      ; Do exception entry handling in C function, PC set based on SR state
-     (set pc (c-call WI "@cpu@_cpu_exception_entry" #xC pc ))
+     (set pc (c-call WI "@arch@_cpu_exception_entry" #xC pc ))
 
      ()
 )
