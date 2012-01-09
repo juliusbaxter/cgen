@@ -28,8 +28,8 @@
 (define-hardware
   (name h-spr) (comment "special purpose registers")
   (type register WI (#x20000))    
-  (get (index) (c-call SI "@arch@_h_spr_get_handler" index))
-  (set (index newval) (c-call VOID "@arch@_h_spr_set_handler" index newval))
+  (get (index) (c-call SI "@cpu@_h_spr_get_handler" index))
+  (set (index newval) (c-call VOID "@cpu@_h_spr_set_handler" index newval))
 )
 
 (define-pmacro (spr-npc)  (reg h-spr   16))
