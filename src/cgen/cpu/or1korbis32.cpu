@@ -354,10 +354,10 @@
      (+ OPC_RFE (f-resv-25-26 0))
      (sequence ()
 	       ; Set SR to whatever is in ESR
-	       (c-call VOID "@cpu@_cpu_mtspr" 17 
-		       (c-call WI "@cpu@_cpu_mfspr" 48))
+	       (c-call VOID "@cpu@_h_spr_set_handler" 17 
+		       (c-call SI "@cpu@_h_spr_get_handler" 48))
 	       ; Set PC to whatever is in EPCR
-               (set pc (c-call WI "@cpu@_cpu_mfspr" 32))
+               (set pc (c-call SI "@cpu@_h_spr_get_handler" 32))
      )
      ()
 )
@@ -396,7 +396,7 @@
      (DELAY-SLOT)
      "l.mfspr $rD,$rA,${uimm-16}"
      (+ OPC_MFSPR rD rA uimm-16)
-     (set rD (c-call WI "@cpu@_cpu_mfspr" (or rA uimm-16)))
+     (set rD (c-call SI "@cpu@_h_spr_get_handler" (or rA uimm-16)))
      ()
 )
 
@@ -404,7 +404,7 @@
      (DELAY-SLOT)
      "l.mtspr $rA,$rB,${ui16nc}"
      (+ OPC_MTSPR rA rB ui16nc )
-     (c-call VOID "@cpu@_cpu_mtspr" (or rA ui16nc) rB)
+     (c-call VOID "@cpu@_h_spr_set_handler" (or rA ui16nc) rB)
      ()
 )
 
