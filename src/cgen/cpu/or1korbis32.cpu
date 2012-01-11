@@ -365,17 +365,18 @@
 
 ; Misc instructions
 
-(dni l-nop "nop with no immediate"
-     ()
-     "l.nop"
-     (+ OPC_NOP (f-op-25-2 #x1) (f-resv-23-8 0) uimm-16)
-     (nop)
-     ()
-)
-
+; l.nop with immediate must be first so it handles all l.nops in sim
 (dni l-nop-imm "nop with immediate"
      ()
      "l.nop ${uimm-16}"
+     (+ OPC_NOP (f-op-25-2 #x1) (f-resv-23-8 0) uimm-16)
+     (c-call VOID "@cpu@_nop_handler" uimm-16 )
+     ()
+)
+
+(dni l-nop "nop without immediate"
+     ()
+     "l.nop"
      (+ OPC_NOP (f-op-25-2 #x1) (f-resv-23-8 0) uimm-16)
      (nop)
      ()
