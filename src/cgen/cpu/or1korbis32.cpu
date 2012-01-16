@@ -303,9 +303,13 @@
      (+ OPC_BNF disp-26)
 
      ; We execute the delay slot before doin' the real branch
-     (if (eq cbit 0)
-         (sequence ()
-                   (delay 1 (set pc disp-26))))
+     (if (eq cbit 0) 
+	 (delay 1 (set pc disp-26))
+	 (if (eq cbit 1)
+	     ; the delay slot is executed always, but when we're not branching
+	     ; the PC is not updated to skip it, so we execute it twice. To
+	     ; avoid that, we'll step over it here, but really it's executed
+	     (delay 1 (set pc (add pc 8)))))
      ()
 )
 
@@ -317,9 +321,13 @@
      (+ OPC_BF disp-26)
 
      ; We execute the delay slot before doin' the real branch
-     (if (eq cbit 1)
-         (sequence ()
-                   (delay 1 (set pc disp-26))))
+     (if (eq cbit 1) 
+	 (delay 1 (set pc disp-26))
+	 (if (eq cbit 0)
+	     ; the delay slot is executed always, but when we're not branching
+	     ; the PC is not updated to skip it, so we execute it twice. To
+	     ; avoid that, we'll step over it here, but really it's executed
+	     (delay 1 (set pc (add pc 8)))))
      ()
 )
 
@@ -383,7 +391,7 @@
 )
 
 (dni l-movhi "movhi"
-     (DELAY-SLOT)
+     ()
      "l.movhi $rD,$hi16"
      (+ OPC_MOVHIMACRC rD (f-resv-20-4 0) OPC_MOVHIMACRC_MOVHI hi16)
      (set rD (sll WI hi16 (const 16)))
@@ -394,7 +402,7 @@
 ; System releated instructions
 
 (dni l-mfspr "mfspr"
-     (DELAY-SLOT)
+     ()
      "l.mfspr $rD,$rA,${uimm-16}"
      (+ OPC_MFSPR rD rA uimm-16)
      (set rD (c-call SI "@cpu@_h_spr_get_handler" (or rA uimm-16)))
@@ -402,7 +410,7 @@
 )
 
 (dni l-mtspr "mtspr"
-     (DELAY-SLOT)
+     ()
      "l.mtspr $rA,$rB,${ui16nc}"
      (+ OPC_MTSPR rA rB ui16nc )
      (c-call VOID "@cpu@_h_spr_set_handler" (or rA ui16nc) rB)
@@ -413,7 +421,7 @@
 ; Load instructions
 
 (dni l-lwz "load word (zero extend ignored)"
-     (DELAY-SLOT)
+     ()
      "l.lwz $rD,${simm-16}($rA)"
      (+ OPC_LWZ rD rA simm-16)
      (set rD (mem SI (add rA simm-16)))
@@ -422,7 +430,7 @@
 
 
 (dni l-lws "load word (sign extend ignored)"
-     (DELAY-SLOT)
+     ()
      "l.lws $rD,${simm-16}($rA)"
      (+ OPC_LWS rD rA simm-16)
      (set rD (mem SI (add rA simm-16)))
@@ -430,7 +438,7 @@
 )
 
 (dni l-lbz "load byte (zero extend)"
-     (DELAY-SLOT)
+     ()
      "l.lbz $rD,${simm-16}($rA)"
      (+ OPC_LBZ rD rA simm-16)
      (set rD (zext SI (mem QI (add rA simm-16))))
@@ -438,7 +446,7 @@
 )
 
 (dni l-lbs "load byte (sign extend)"
-     (DELAY-SLOT)
+     ()
      "l.lbs $rD,${simm-16}($rA)"
      (+ OPC_LBS rD rA simm-16)
      (set rD (ext SI (mem QI (add rA simm-16))))
@@ -446,7 +454,7 @@
 )
 
 (dni l-lhz "load halfword (zero extend)"
-     (DELAY-SLOT)
+     ()
      "l.lhz $rD,${simm-16}($rA)"
      (+ OPC_LHZ rD simm-16 rA)
      (set rD (zext SI (mem HI (add rA simm-16))))
@@ -454,7 +462,7 @@
 )
 
 (dni l-lhs "load halfword (sign extend)"
-     (DELAY-SLOT)
+     ()
      "l.lhs $rD,${simm-16}($rA)"
      (+ OPC_LHS rD rA simm-16)
      (set rD (ext SI (mem HI (add rA simm-16))))
@@ -470,7 +478,7 @@
   (begin
      (dni (.sym l- mnemonic)
           (.str "l." mnemonic " imm(reg)/reg")
-          (DELAY-SLOT)
+          ()
           (.str "l." mnemonic " ${ui16nc}($rA),$rB")
           (+ opc-op rB rD ui16nc)
           (set (mem mode-op (add rA ui16nc)) rB)
@@ -563,7 +571,7 @@
 )
 
 (dni l-div "divide (signed)"
-          (DELAY-SLOT)
+          ()
           "l.div $rD,$rA,$rB"
           (+ OPC_ALU rD rA rB (f-resv-10-7 #x30) OPC_ALU_REGREG_DIV)
           (set rD (div rA rB))
@@ -571,7 +579,7 @@
 )
 
 (dni l-divu "divide (unsigned)"
-          (DELAY-SLOT)
+          ()
           "l.divu $rD,$rA,$rB"
           (+ OPC_ALU rD rA rB (f-resv-10-7 #x30) OPC_ALU_REGREG_DIVU)
           (set rD (udiv rA rB))
@@ -619,7 +627,7 @@
   (begin
      (dni (.sym l- "sf" (.sym sem-op "s"))
           (.str "l.sf" (.str sem-op) "s reg/reg")
-          (DELAY-SLOT)
+          ()
           (.str "l.sf" (.str sem-op) "s $rA,$rB")
           (+ OPC_SF opc-sf rA rB (f-resv-10-11 0))
           (set cbit (sem-op rA rB)) ;; TODO: ensure signed compare
@@ -633,7 +641,7 @@
   (begin
      (dni (.sym l- "sf" (.sym sem-op "u"))
           (.str "l." (.str sem-op) "u reg/reg")
-          (DELAY-SLOT)
+          ()
           (.str "l.sf" (.str sem-op) "u $rA,$rB")
           (+ OPC_SF opc-sf rA rB (f-resv-10-11 0))
           (set cbit (sem-op rA rB)) ;; TODO: ensure unsigned compare
@@ -647,7 +655,7 @@
   (begin
      (dni (.sym l- "sf" (.sym sem-op "si"))
           (.str "l." (.str sem-op) "si reg/imm")
-          (DELAY-SLOT)
+          ()
           (.str "l.sf" (.str sem-op) "si $rA,${simm-16}")
           (+ OPC_SFI opc-sf rA simm-16)
           (set cbit (sem-op rA simm-16))
@@ -661,7 +669,7 @@
   (begin
      (dni (.sym l- "sf" (.sym sem-op "ui"))
           (.str "l." (.str sem-op) "ui reg/imm")
-          (DELAY-SLOT)
+          ()
           (.str "l.sf" (.str sem-op) "ui $rA,${uimm-16}")
           (+ OPC_SFI opc-sf rA uimm-16)
           (set cbit (sem-op rA uimm-16))
@@ -675,7 +683,7 @@
   (begin
      (dni (.sym l- "sf" sem-op)
           (.str "l." (.str sem-op) " reg/reg")
-          (DELAY-SLOT)
+          ()
           (.str "l.sf" (.str sem-op) " $rA,$rB")
           (+ OPC_SF opc-sf rA rB (f-resv-10-11 0))
           (set cbit (sem-op rA rB))
@@ -683,7 +691,7 @@
      )
      (dni (.sym l- "sf" (.sym sem-op "i"))
           (.str "l.sf" (.str sem-op) "i reg/imm")
-          (DELAY-SLOT)
+          ()
           (.str "l.sf" (.str sem-op) "i $rA,${simm-16}")
           (+ OPC_SFI opc-sf rA simm-16)
           (set cbit (sem-op rA simm-16)) ;; TODO: ensure rA interpreted w/ sign.
