@@ -20,8 +20,9 @@
 
 (include "simplify.inc")
 
-; The OpenRISC family of microprocessor architectures is a set of RISC
-; ISAs with an emphasis on scalability and is targetted at embedded use.
+; The OpenRISC family is a set of RISC microprocessor architectures with an 
+; emphasis on scalability and is targetted at embedded use.
+; The CPU RTL development is a collaborative open source effort.
 ; http://opencores.org/or1k
 ; http://openrisc.net
 
