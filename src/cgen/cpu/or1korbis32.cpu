@@ -587,25 +587,24 @@
 )
 
 
-(define-pmacro (alu-insn-imm  mnemonic insn-opc signop)
+(define-pmacro (alu-insn-imm  mnemonic insn-opc signop )
   (begin
       (dni (.sym l- mnemonic "i")
           (.str "l." mnemonic " reg/reg/lo16")
           ()
           (.str "l." mnemonic "i $rD,$rA,$lo16")
           (+ insn-opc rD rA lo16)
-          (set rD (mnemonic rA (signop WI (and lo16 #xffff))))
+          (set rD (mnemonic rA (signop SI (trunc HI lo16))))
           ()
      )
    )
 )
 
 (alu-insn-imm add OPC_ADDI ext )
-(alu-insn-imm and OPC_ANDI zext)
-(alu-insn-imm or  OPC_ORI  zext)
+(alu-insn-imm and OPC_ANDI zext )
+(alu-insn-imm or  OPC_ORI  zext )
 (alu-insn-imm xor OPC_XORI ext )
 (alu-insn-imm mul OPC_MULI ext )
-
 
 (dni ("l.addic")
      ("l.addic reg/reg/lo16")
@@ -613,7 +612,7 @@
      ("l.addic $rD,$rA,$lo16")
      (+ OPC_ADDIC rD rA lo16)
      ;; TODO - get carry flag in on this
-     (set rD (add rA (ext WI (and lo16 #xffff))))
+     (set rD (add rA (ext SI (trunc HI lo16))))
      ()
 )
 
