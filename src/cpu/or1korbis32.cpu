@@ -171,6 +171,7 @@
    ("EXTBH" #xC)
    ("EXTW"  #xD)
    ("CMOV"  #xE)
+   ("FFL1"  #xF)
    )
 )
    
@@ -586,6 +587,22 @@
           ()
 )
 
+(dni l-ff1 "find first '1'"
+          ()
+          "l.ff1 $rD,$rA"
+          (+ OPC_ALU rD rA rB (f-resv-10-7 #x00) OPC_ALU_REGREG_FFL1)
+          (set rD (c-call SI "@cpu@_h_ff1" rA))
+          ()
+)
+
+(dni l-fl1 "find last '1'"
+          ()
+          "l.fl1 $rD,$rA"
+          (+ OPC_ALU rD rA rB (f-resv-10-7 #x10) OPC_ALU_REGREG_FFL1)
+          (set rD (c-call SI "@cpu@_h_fl1" rA))
+          ()
+)
+
 
 (define-pmacro (alu-insn-imm  mnemonic insn-opc signop )
   (begin
@@ -669,9 +686,9 @@
      (dni (.sym l- "sf" (.sym sem-op "ui"))
           (.str "l." (.str sem-op) "ui reg/imm")
           ()
-          (.str "l.sf" (.str sem-op) "ui $rA,${uimm-16}")
-          (+ OPC_SFI opc-sf rA uimm-16)
-          (set cbit (sem-op rA uimm-16))
+          (.str "l.sf" (.str sem-op) "ui $rA,$lo16")
+          (+ OPC_SFI opc-sf rA lo16)
+          (set cbit (sem-op rA (ext SI (trunc HI lo16))))
           ()
      )
   )
@@ -691,9 +708,9 @@
      (dni (.sym l- "sf" (.sym sem-op "i"))
           (.str "l.sf" (.str sem-op) "i reg/imm")
           ()
-          (.str "l.sf" (.str sem-op) "i $rA,${simm-16}")
-          (+ OPC_SFI opc-sf rA simm-16)
-          (set cbit (sem-op rA simm-16)) ;; TODO: ensure rA interpreted w/ sign.
+          (.str "l.sf" (.str sem-op) "i $rA,$lo16")
+          (+ OPC_SFI opc-sf rA lo16)
+          (set cbit (sem-op rA (ext SI (trunc HI lo16)))) ;; TODO: ensure rA int132erpreted w/ sign.
           ()
      )
    )
